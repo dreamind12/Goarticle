@@ -16,11 +16,8 @@ import (
 
 var validate = binding.Validator.Engine().(*validator.Validate)
 
-// CreatePost meng-handle pembuatan post baru
 func CreatePost(c *gin.Context) {
 	var post models.Post
-
-	// Bind data dari request ke struct Post
 	if err := c.ShouldBindJSON(&post); err != nil {
 		// Validasi gagal
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -78,6 +75,18 @@ func GetPostByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": post})
+}
+
+func GetAllPosts(c *gin.Context) {
+	var posts []models.Post
+
+	// Ambil semua data dari tabel posts
+	if err := database.DB.Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching posts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": posts})
 }
 
 func GetPostsWithPaging(c *gin.Context) {

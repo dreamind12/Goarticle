@@ -10,7 +10,6 @@ import (
 
 var DB *gorm.DB
 
-// InitDB initializes the database connection using GORM
 func InitDB() {
     dsn := "root:@tcp(localhost:3306)/article?charset=utf8mb4&parseTime=True&loc=Local"
     var err error

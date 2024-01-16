@@ -17,9 +17,8 @@ type Post struct {
     Status    string
 }
 
-// GORM-specific functions for table name and auto-migration
 func (Post) TableName() string {
-    return "posts" // Or any custom table name you prefer
+    return "posts" 
 }
 
 func (post *Post) BeforeCreate(tx *gorm.DB) (err error) {

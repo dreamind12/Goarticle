@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
 	"Gotest/controllers"
 	"Gotest/database"
+
 )
 
 func main() {
@@ -31,6 +33,8 @@ func main() {
 		port = "9000"
 	}
 
+	router.Use(cors.Default())
+
 	router.Use(func(c *gin.Context) {
 		c.Set("db", database.DB)
 		c.Next()
@@ -42,6 +46,7 @@ func main() {
 		api.POST("/", controllers.CreatePost)
 		api.GET("/:id", controllers.GetPostByID)
 		api.GET("/page/:limit/:offset", controllers.GetPostsWithPaging)
+		api.GET("/getAll", controllers.GetAllPosts)
 		api.PUT("/:id", controllers.UpdatePostByID)
 		api.DELETE("/:id", controllers.DeletePostByID)
 	}
