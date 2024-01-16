@@ -1,3 +1,8 @@
+# Clone Frontend
+- Salin repository dengan menggunakan perintah git clone -b frontend https://github.com/dreamind12/Goarticle.git
+- Instal modul-modul yang diperlukan dari file package.json dengan menjalankan perintah npm install.
+- Jalankan Frontend dengan perintah npm start
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
