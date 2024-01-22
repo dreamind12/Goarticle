@@ -12,7 +12,6 @@ import (
 
 	"Gotest/controllers"
 	"Gotest/database"
-
 )
 
 func main() {
