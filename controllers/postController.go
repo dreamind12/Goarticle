@@ -31,7 +31,7 @@ func CreatePost(c *gin.Context) {
 	}
 
 	// Validasi tambahan untuk status
-	if post.Status != "Publish" && post.Status != "Draft" && post.Status != "Thrash" {
+	if post.Status != "Publish" && post.Status != "Draft" && post.Status != "Trash" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post status"})
 		return
 	}
@@ -42,8 +42,8 @@ func CreatePost(c *gin.Context) {
 		return
 	}
 
-	if len(post.Content) < 200 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content must be at least 200 characters"})
+	if len(post.Descript) < 200 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Descript must be at least 200 characters"})
 		return
 	}
 
@@ -130,7 +130,7 @@ func UpdatePostByID(c *gin.Context) {
 	}
 
 	// Validasi tambahan untuk status
-	if newPost.Status != "Publish" && newPost.Status != "Draft" && newPost.Status != "Thrash" {
+	if newPost.Status != "Publish" && newPost.Status != "Draft" && newPost.Status != "Trash" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post status"})
 		return
 	}
@@ -141,8 +141,8 @@ func UpdatePostByID(c *gin.Context) {
 		return
 	}
 
-	if len(newPost.Content) < 200 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content must be at least 200 characters"})
+	if len(newPost.Descript) < 200 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Descript must be at least 200 characters"})
 		return
 	}
 
