@@ -13,7 +13,6 @@ import (
 
 )
 
-// RegisterUser meng-handle registrasi pengguna
 func RegisterUser(c *gin.Context) {
 	var userInput models.User
 	if err := c.ShouldBindJSON(&userInput); err != nil {
@@ -29,24 +28,15 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	userInput.Password = string(hashedPassword)
-	userInput.CreatedAt = time.Now()
-	userInput.UpdatedAt = time.Now()
+	userInput.CreatedAt = time.Now()	
 
 	// Simpan pengguna ke database
 	result := database.DB.Create(&userInput)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
-	}
-
-	// Buat token JWT
-	tokenString, err := config.GenerateToken(userInput) // Call the function from the config package
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	}	
+	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully", "data": userInput})
 }
 
 func LoginUser(c *gin.Context) {
@@ -57,7 +47,7 @@ func LoginUser(c *gin.Context) {
 	}
 
 	var user models.User
-	result := database.DB.Where("username = ?", loginInput.Username).First(&user)
+	result := database.DB.Where("username = ? OR email = ?", loginInput.Username, loginInput.Username).First(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to login user"})
 		return
@@ -75,7 +65,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	c.JSON(http.StatusOK, gin.H{"data": user,"token": tokenString})	
 }
 
 func GetUserByID(c *gin.Context) {
@@ -155,6 +145,6 @@ func UpdateUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, existingUser)
 }
 
-func LogoutUser(c *gin.Context) {
+func LogoutUser (c *gin.Context) {
 
 }
