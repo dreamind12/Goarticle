@@ -17,9 +17,6 @@ import (
 func main() {
 	database.InitDB()
 
-	// Membuat tabel artikel
-	// database.CreateArticleTable()
-
 	router := gin.Default()
 
 	err := godotenv.Load()
@@ -48,6 +45,15 @@ func main() {
 		api.GET("/getAll", controllers.GetAllPosts)
 		api.PUT("/:id", controllers.UpdatePostByID)
 		api.DELETE("/:id", controllers.DeletePostByID)
+	}
+
+	api = router.Group("/user")
+	{
+		api.POST("/register", controllers.RegisterUser)
+		api.POST("/login", controllers.LoginUser)
+		api.GET("/:id", controllers.GetUserByID)
+		api.GET("/getAll", controllers.GetAllUsers)
+		api.POST("/logout", controllers.LogoutUser)
 	}
 
 	router.GET("/", func(c *gin.Context) {
