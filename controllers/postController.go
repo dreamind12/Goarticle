@@ -19,51 +19,25 @@ var validate = binding.Validator.Engine().(*validator.Validate)
 func CreatePost(c *gin.Context) {
 	var post models.Post
 	if err := c.ShouldBindJSON(&post); err != nil {
-		// Validasi gagal
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
-
-	// Validasi menggunakan validator
-	if err := validate.Struct(&post); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}	
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found in context"})
 		return
 	}
-
-	// Validasi tambahan untuk status
-	if post.Status != "Publish" && post.Status != "Draft" && post.Status != "Trash" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post status"})
-		return
-	}
-
-	// Validasi tambahan untuk title, content, dan category
-	if len(post.Title) < 20 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Title must be at least 20 characters"})
-		return
-	}
-
-	if len(post.Descript) < 200 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Descript must be at least 200 characters"})
-		return
-	}
-
-	if len(post.Category) < 3 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Category must be at least 3 characters"})
-		return
-	}
-
-	// Buat post di database
+	userData := user.(models.User)
+	post.User_ID = userData.ID
 	if err := database.DB.Create(&post).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusCreated, gin.H{"data": post})
+	c.JSON(http.StatusOK, gin.H{"data": post})
 }
 
 func GetPostByID(c *gin.Context) {
 	postID := c.Param("id")
-
 	var post models.Post
 	if err := database.DB.First(&post, postID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -73,20 +47,56 @@ func GetPostByID(c *gin.Context) {
 		}
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"data": post})
+	userID := post.User_ID
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching user"})
+		}
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": post, "user": user})
 }
 
 func GetAllPosts(c *gin.Context) {
-	var posts []models.Post
-
-	// Ambil semua data dari tabel posts
+	var posts []models.Post	
 	if err := database.DB.Find(&posts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching posts"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": posts})
+	var responseData []gin.H
+	for _, post := range posts {
+		userID := post.User_ID
+		var user models.User
+		if err := database.DB.First(&user, userID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching user"})
+			}
+			return
+		}
+
+		postData := gin.H{
+			"ID":            post.ID,
+			"User_ID":       post.User_ID,
+			"UserUpdate_ID": post.UserUpdate_ID,
+			"Title":         post.Title,
+			"Descript":      post.Descript,
+			"Category":      post.Category,
+			"Status":        post.Status,
+			"CreatedAt":     post.CreatedAt,
+			"UpdatedAt":     post.UpdatedAt,
+			"users":         []models.User{user}, // Include user data under each post
+		}
+
+		responseData = append(responseData, postData)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": responseData})
 }
 
 func GetPostsWithPaging(c *gin.Context) {
@@ -133,23 +143,7 @@ func UpdatePostByID(c *gin.Context) {
 	if newPost.Status != "Publish" && newPost.Status != "Draft" && newPost.Status != "Trash" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post status"})
 		return
-	}
-
-	// Validasi tambahan untuk title, content, dan category
-	if len(newPost.Title) < 20 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Title must be at least 20 characters"})
-		return
-	}
-
-	if len(newPost.Descript) < 200 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Descript must be at least 200 characters"})
-		return
-	}
-
-	if len(newPost.Category) < 3 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Category must be at least 3 characters"})
-		return
-	}
+	}	
 
 	// Update post di database
 	var existingPost models.Post
@@ -162,7 +156,7 @@ func UpdatePostByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": existingPost})
+	c.JSON(http.StatusOK, gin.H{"Message" : "Post updated successfully","data": existingPost})
 }
 
 func DeletePostByID(c *gin.Context) {
