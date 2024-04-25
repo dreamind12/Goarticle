@@ -21,7 +21,7 @@ func CreatePost(c *gin.Context) {
 	if err := c.ShouldBindJSON(&post); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}	
+	}
 	user, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found in context"})
@@ -61,7 +61,7 @@ func GetPostByID(c *gin.Context) {
 }
 
 func GetAllPosts(c *gin.Context) {
-	var posts []models.Post	
+	var posts []models.Post
 	if err := database.DB.Find(&posts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching posts"})
 		return
@@ -97,6 +97,45 @@ func GetAllPosts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": responseData})
+}
+
+func GetAllPostByUser(c *gin.Context) {	
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Data pengguna tidak ditemukan"})
+		return
+	}
+
+	currentUser, ok := user.(models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mendapatkan data pengguna"})
+		return
+	}
+	
+	var posts []models.Post
+	result := database.DB.Where("user_id = ?", currentUser.ID).Find(&posts)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching post"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
+func SearchPostByTitle(c *gin.Context) {	
+	searchQuery := c.Query("q")
+	if searchQuery == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameter pencarian (q) tidak ditemukan"})
+		return
+	}
+	// Lakukan query untuk mencari post berdasarkan title
+	var posts []models.Post
+	result := database.DB.Where("title LIKE ?", "%"+searchQuery+"%").Find(&posts)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching post"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
 func GetPostsWithPaging(c *gin.Context) {
@@ -143,7 +182,7 @@ func UpdatePostByID(c *gin.Context) {
 	if newPost.Status != "Publish" && newPost.Status != "Draft" && newPost.Status != "Trash" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post status"})
 		return
-	}	
+	}
 
 	// Update post di database
 	var existingPost models.Post
@@ -156,7 +195,7 @@ func UpdatePostByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"Message" : "Post updated successfully","data": existingPost})
+	c.JSON(http.StatusOK, gin.H{"Message": "Post updated successfully", "data": existingPost})
 }
 
 func DeletePostByID(c *gin.Context) {

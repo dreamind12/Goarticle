@@ -15,6 +15,8 @@ func PostRoute(router *gin.Engine) {
 		api.GET("/:id", controllers.GetPostByID)
 		api.GET("/page/:limit/:offset", controllers.GetPostsWithPaging)
 		api.GET("/getAll", controllers.GetAllPosts)
+		api.GET("/getPostUser", middleware.AuthMiddleware(), controllers.GetAllPostByUser)
+		api.GET("/search", controllers.SearchPostByTitle)
 		api.PUT("/:id", controllers.UpdatePostByID)
 		api.DELETE("/:id", controllers.DeletePostByID)
 	}
