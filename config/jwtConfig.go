@@ -16,8 +16,13 @@ func getJwtSecret() string {
 	return os.Getenv("JWTSECRET")
 }
 
+func GetJwtSecret() []byte { 
+	return jwtSecret
+}
+
 func GenerateToken(userInput models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       userInput.ID,
 		"username": userInput.Username,
 		"email":    userInput.Email,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(), // Token berlaku selama 1 hari
