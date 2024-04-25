@@ -3,7 +3,7 @@ package database
 import (
 	"log"
 
-	"Gotest/migrationseeder/migration"
+	// "Gotest/migrationseeder/migration"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,17 +21,17 @@ func InitDB() {
 
 	log.Println("Connected to the database using GORM")
 
-	if err := migration.MigrateUsers(DB); err != nil {
-		log.Fatal("Error migrating users table:", err)
-	}
+	// if err := migration.MigrateUsers(DB); err != nil {
+	// 	log.Fatal("Error migrating users table:", err)
+	// }
 
-	if err := migration.MigratePosts(DB); err != nil {
-		log.Fatal("Error migrating posts table:", err)
-	}
+	// if err := migration.MigratePosts(DB); err != nil {
+	// 	log.Fatal("Error migrating posts table:", err)
+	// }
 
-	if err := migration.MigrateFiles(DB); err != nil {
-		log.Fatal("Error migrating file table:", err)
-	}
+	// if err := migration.MigrateFiles(DB); err != nil {
+	// 	log.Fatal("Error migrating file table:", err)
+	// }
 
 	log.Println("Database migration completed successfully")
 }
