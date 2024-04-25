@@ -6,12 +6,12 @@ import (
 )
 
 type File struct {
-	ID uint `gorm:"primaryKey"`
-	Post_ID uint `gorm:"integer(11)"`	
-	File_Name string `gorm:"varchar(50);not null"`
-	File_Path string `gorm:"varchar(50);not null"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"`
+	ID uint `gorm:";primaryKey"`
+	Post_ID uint `gorm:""`
+	File_Name string `gorm:"not null"`
+	File_Path string `gorm:"not null"`
+	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"type:datetime;default:null"`
 }
 
 func (file *File) TableName() string {

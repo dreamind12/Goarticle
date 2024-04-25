@@ -8,12 +8,12 @@ import (
 
 type User struct {
 	ID        uint `gorm:"primaryKey"`
-	Username  string `gorm:"varchar(50);not null"`
-	Email     string `gorm:"varchar(50);not null"`
-	Password  string `gorm:"varchar(50);not null"`
-	Profile   string `gorm:"varchar(50); null"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"`
+	Username  string `gorm:"not null"`
+	Email     string `gorm:"not null"`
+	Password  string `gorm:"not null"`
+	Profile   string `gorm:"default:null"`
+	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"type:datetime;default:null"`
 }
 
 func (User) Tablename() string {

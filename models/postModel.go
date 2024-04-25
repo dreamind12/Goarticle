@@ -8,13 +8,14 @@ import (
 
 type Post struct {
 	ID        uint `gorm:"primaryKey"`
-	User_ID   uint `gorm:"integer(11);not null"`
-	Title     string `gorm:"varchar(50);not null"`
+	User_ID   uint `gorm:"not null"`
+	UserUpdate_ID uint `gorm:"default:null"`
+	Title     string `gorm:"not null"`
 	Descript  string  `gorm:"type:text;not null"`
-	Category  string	`gorm:"varchar(20)"`
-	Status    string	`gorm:"varchar(10)"`	
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP"`
+	Category  string	`gorm:"default:null"`
+	Status    string	`gorm:"default:null"`
+	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"type:datetime;default:null"`
 }
 
 func (Post) TableName() string {
