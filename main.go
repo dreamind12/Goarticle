@@ -10,8 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
-	"Gotest/controllers"
 	"Gotest/database"
+	"Gotest/routes"
 )
 
 func main() {
@@ -36,26 +36,9 @@ func main() {
 		c.Next()
 	})
 
-	// Menambahkan rute dan handler
-	api := router.Group("/article")
-	{
-		api.POST("/", controllers.CreatePost)
-		api.GET("/:id", controllers.GetPostByID)
-		api.GET("/page/:limit/:offset", controllers.GetPostsWithPaging)
-		api.GET("/getAll", controllers.GetAllPosts)
-		api.PUT("/:id", controllers.UpdatePostByID)
-		api.DELETE("/:id", controllers.DeletePostByID)
-	}
-
-	api = router.Group("/user")
-	{
-		api.POST("/register", controllers.RegisterUser)
-		api.POST("/login", controllers.LoginUser)
-		api.GET("/:id", controllers.GetUserByID)
-		api.GET("/getAll", controllers.GetAllUsers)
-		api.POST("/logout", controllers.LogoutUser)
-	}
-
+	// Routes
+	routes.PostRoute(router)
+	routes.UserRoutes(router)
 	router.GET("/", func(c *gin.Context) {
 		fmt.Println("Response success")
 		c.String(http.StatusOK, "Response Success!")
