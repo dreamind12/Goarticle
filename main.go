@@ -30,7 +30,7 @@ func main() {
 	}
 
 	router.Use(cors.Default())
-
+	router.Static("/public", "./public")
 	router.Use(func(c *gin.Context) {
 		c.Set("db", database.DB)
 		c.Next()

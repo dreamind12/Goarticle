@@ -1,10 +1,15 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"Gotest/config"
@@ -100,13 +105,12 @@ func GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": users})
 }
 
-func GetUserInfoLogin(c *gin.Context) {	
+func GetUserInfoLogin(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Data pengguna tidak ditemukan"})
 		return
 	}
-	
 	currentUser, ok := user.(models.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mendapatkan data pengguna"})
@@ -117,62 +121,80 @@ func GetUserInfoLogin(c *gin.Context) {
 }
 
 func UpdateUserByID(c *gin.Context) {
-	userID := c.Param("id")
+    userID := c.Param("id")
 
-	var existingUser models.User
-	result := database.DB.First(&existingUser, userID)
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
+    var existingUser models.User
+    result := database.DB.First(&existingUser, userID)
+    if result.Error != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
 
-	var updateInput models.User
-	if err := c.ShouldBindJSON(&updateInput); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+    var updateInput models.User
+    if err := c.ShouldBind(&updateInput); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	if updateInput.Username != "" {
-		existingUser.Username = updateInput.Username
-	}
+    if updateInput.Username != "" {
+        existingUser.Username = updateInput.Username
+    }
 
-	if updateInput.Email != "" {
-		existingUser.Email = updateInput.Email
-	}
+    if updateInput.Email != "" {
+        existingUser.Email = updateInput.Email
+    }
 
-	if updateInput.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateInput.Password), bcrypt.DefaultCost)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-			return
-		}
-		existingUser.Password = string(hashedPassword)
-	}
+    if updateInput.Password != "" {
+        hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateInput.Password), bcrypt.DefaultCost)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+            return
+        }
+        existingUser.Password = string(hashedPassword)
+    }
 
-	if updateInput.Profile != "" {
-		// Handle profile image upload
-		// You may want to use a library like github.com/gin-gonic/gin#ShouldBindForm for file uploads
-		// Save the uploaded file and update the profile field
-		// For simplicity, assume the updateInput.Profile is a URL to the uploaded image
-		existingUser.Profile = updateInput.Profile
-	}
+    file, err := c.FormFile("profile")
+    if err != nil && err != http.ErrMissingFile {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "File upload failed"})
+        return
+    } else if err == nil {
+        // Check if folder exists, create if not
+        if _, err := os.Stat("public/images/profiles"); os.IsNotExist(err) {
+            os.Mkdir("public/images/profiles", 0755)
+        }
 
-	result = database.DB.Save(&existingUser)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
-		return
-	}
+        randomName := uuid.New().String()
+        filePath := "public/images/profiles/" + randomName + filepath.Ext(file.Filename)
 
-	c.JSON(http.StatusOK, existingUser)
+        // Save file to public/images/profiles/ folder
+        if err := c.SaveUploadedFile(file, filePath); err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+            return
+        }
+
+        // Delete old file if it exists
+        if existingUser.Profile != "" {
+            oldFilePath := strings.TrimPrefix(existingUser.Profile, "http://localhost:8080/")
+            if err := os.Remove(oldFilePath); err != nil {
+                log.Printf("Failed to delete old file: %v\n", err)
+            }
+        }
+        existingUser.Profile = "http://localhost:8080/" + filePath
+    }
+    result = database.DB.Save(&existingUser)
+    if result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+        return
+    }
+    c.JSON(http.StatusOK, existingUser)
 }
 
-func UpdateUserByLogin(c *gin.Context) {	
+func UpdateUserByLogin(c *gin.Context) {         
 	user, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Data pengguna tidak ditemukan"})
 		return
 	}
-	
 	currentUser, ok := user.(models.User)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mendapatkan data pengguna"})
